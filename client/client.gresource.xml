@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+    <gresource prefix="/org/gtk/client">
+        <file preprocess="xml-stripblanks">login.glade</file>
+        <file preprocess="xml-stripblanks">chat.glade</file>
+    </gresource>
+</gresources>
