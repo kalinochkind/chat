@@ -178,6 +178,7 @@ long long chat_last_message()
 
 void chat_send_all(char *my_login, long long from, long long to, int sock)
 {
+    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, 0);
     sqlite3_stmt *stmt;
     sqlite3_prepare_v2(db, "SELECT * FROM messages WHERE ROWID>? AND ROWID<=?", -1, &stmt, 0);
     sqlite3_bind_int64(stmt, 1, from);
@@ -195,6 +196,7 @@ void chat_send_all(char *my_login, long long from, long long to, int sock)
         message_send(kind[0], tv, login, body, !strcmp(login, my_login), sock);
     }
     sqlite3_finalize(stmt);
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, 0);
 }
 
 void chat_send_history(int cnt, int sock)
