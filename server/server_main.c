@@ -165,9 +165,9 @@ void *connection_handler(void *param)
             case 'i':  // login
                 if(login)
                 {
+                    pthread_cancel(watcher);
                     message_do_logout(login);
                     free(login);
-                    pthread_cancel(watcher);
                 }
                 login = message_login(msg, sock);
                 if(login)
@@ -180,9 +180,9 @@ void *connection_handler(void *param)
                 }
                 break;
             case 'o':  // logout
+               pthread_cancel(watcher);
                message_logout(login, sock);
                free(login);
-               pthread_cancel(watcher);
                login = 0;
                break;
             case 'r':
