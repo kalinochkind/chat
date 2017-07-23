@@ -150,11 +150,28 @@ int message_receive(struct timeval *time, char **author, char **body)
         }
         *author = malloc(1);
         **author = 0;
+        time->tv_sec = 0;
     }
     else if(tp == 's' && proto_get_line_count(p) == 1 && proto_get_int(p, 0) == STATUS_ACCESS_DENIED)
     {
         *author = 0;
         *body = "Access denied";
+    }
+    else if(tp == 's' && proto_get_line_count(p) == 1 && proto_get_int(p, 0) == STATUS_NO_SUCH_USER)
+    {
+        *author = 0;
+        *body = "No such user";
+    }
+    else if(tp == 'k')
+    {
+        char *reason = proto_get_str(p, 0);
+        *author = malloc(1);
+        **author = 0;
+        *body = malloc(300);
+        strcpy(*body, "You have been kicked (reason: ");
+        strncat(*body, reason, 256);
+        strcat(*body, ")");
+        time->tv_sec = 0;
     }
     else
     {

@@ -41,6 +41,7 @@ void proto_set_timeval(struct proto_message *msg, unsigned line_no, struct timev
 #define STATUS_SIGNUP_ERROR 4
 #define STATUS_ACCESS_DENIED 5
 #define STATUS_INVALID_MESSAGE 6
+#define STATUS_NO_SUCH_USER 7
 
 #define MESSAGE_BUF_SIZE (1 << 17)
 

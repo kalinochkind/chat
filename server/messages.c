@@ -107,7 +107,7 @@ void message_receive(char *login, struct proto_message *m, int sock)
     chat_new_message("r", login, line);
 }
 
-void message_send(char kind, struct timeval time, const char *login, const char *body, int my_msg, int sock)
+void message_send(char kind, struct timeval time, const char *login, const char *body, int sock)
 {
     if(kind == 'r' || kind == 'h')
     {
@@ -124,7 +124,7 @@ void message_send(char kind, struct timeval time, const char *login, const char 
         proto_set_str(p, 1, body);
         _send(p, sock);
     }
-    if(kind == 'k'  && my_msg)
+    if(kind == 'k')
     {
         struct proto_message *p = proto_create('k', 1);
         proto_set_str(p, 0, body);
@@ -191,7 +191,13 @@ void message_kick(char *login, struct proto_message *m, int sock)
     }
     int uid = proto_get_int(m, 0);
     char *reason = proto_get_str(m, 1);
-    chat_kick_user(uid, reason);
-    message_send_status(STATUS_OK, sock);
-    printf("Kicked user %d: %s\n", uid, reason);
+    if(chat_kick_user(uid, reason))
+    {
+        printf("Kicked user %d: %s\n", uid, reason);
+    }
+    else
+    {
+        message_send_status(STATUS_NO_SUCH_USER, sock);
+        printf("Tried to kick %d: %s\n", uid, reason);
+    }
 }

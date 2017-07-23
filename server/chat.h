@@ -15,7 +15,7 @@ char *chat_get_user_password(char *login);
 int chat_validate_login(char *login);
 int chat_create_user(char *login, char *password);
 void chat_create_session(char *login);
-void chat_delete_session(char *login);
+void chat_delete_session(const char *login);
 
 void chat_new_message(char *kind, const char *login, const char *msg);
 long long chat_last_message();

@@ -129,7 +129,7 @@ void chat_create_session(char *login)
     DEBUG_UNLOCK
 }
 
-void chat_delete_session(char *login)
+void chat_delete_session(const char *login)
 {
     sqlite3_stmt *stmt;
     DEBUG_LOCK
@@ -191,7 +191,17 @@ void chat_send_all(char *my_login, long long from, long long to, int sock)
         struct timeval tv;
         tv.tv_usec = t << 32 >> 32;
         tv.tv_sec = t >> 32;
-        message_send(kind[0], tv, login, body, !strcmp(login, my_login), sock);
+        if(kind[0] == 'k')
+        {
+            if(strcmp(login, my_login))
+                continue;
+            else
+            {
+                my_login[0] = 0;
+                chat_delete_session(login);
+            }
+        }
+        message_send(kind[0], tv, login, body, sock);
     }
     sqlite3_finalize(stmt);
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, 0);
@@ -213,7 +223,7 @@ void chat_send_history(int cnt, int sock)
         struct timeval tv;
         tv.tv_usec = t << 32 >> 32;
         tv.tv_sec = t >> 32;
-        message_send('h', tv, login, body, 0, sock);
+        message_send('h', tv, login, body, sock);
     }
     sqlite3_finalize(stmt);
 }
@@ -257,12 +267,11 @@ int chat_kick_user(long long uid, const char *reason)
     DEBUG_LOCK
     pthread_mutex_lock(&msg_mutex);
     sqlite3_stmt *stmt;
-    sqlite3_prepare_v2(db, "SELECT login FROM users WHERE ROWID=?", -1, &stmt, 0);
+    sqlite3_prepare_v2(db, "SELECT login FROM users WHERE ROWID=? AND login IN (SELECT login FROM sessions)", -1, &stmt, 0);
     sqlite3_bind_int64(stmt, 1, uid);
     int rc = sqlite3_step(stmt);
     if(rc == SQLITE_DONE)
     {
-        puts("No such user");
         sqlite3_finalize(stmt);
         pthread_mutex_unlock(&msg_mutex);
         DEBUG_UNLOCK
@@ -271,17 +280,17 @@ int chat_kick_user(long long uid, const char *reason)
     const char *login = (const char *) sqlite3_column_text(stmt, 0);
     pthread_mutex_unlock(&msg_mutex);
     DEBUG_UNLOCK
-    char buf[256];
+    chat_new_message("k", login, reason);
+    char buf[512];
     strcpy(buf, login);
     strcat(buf, " kicked");
     if(*reason)
     {
         strcat(buf, " (reason: ");
-        strncat(buf, reason, 128);
+        strncat(buf, reason, 256);
         strcat(buf, ")");
     }
-    chat_new_message("m", "", buf);
-    chat_new_message("k", login, reason);
     sqlite3_finalize(stmt);
+    chat_new_message("m", "", buf);
     return 1;
 }

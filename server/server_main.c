@@ -103,6 +103,7 @@ int main(int argc, char **argv)
         {
             error(1, errno, "Failed to create thread");
         }
+        pthread_detach(handler);
     }
     return 0;
 }
@@ -110,7 +111,7 @@ int main(int argc, char **argv)
 
 struct thread_data
 {
-    char login[32];
+    char *login;
     int sock;
 };
 
@@ -121,6 +122,7 @@ void *message_watcher(void *param)
     long long cur = chat_last_message();
     while(1)
     {
+        pthread_testcancel();
         sqlite3_sleep(100);
         pthread_testcancel();
         long long t = chat_last_message();
@@ -166,6 +168,7 @@ void *connection_handler(void *param)
                 if(login)
                 {
                     pthread_cancel(watcher);
+                    pthread_join(watcher, 0);
                     message_do_logout(login);
                     free(login);
                 }
@@ -174,13 +177,14 @@ void *connection_handler(void *param)
                 {
                     printf("%s logged in\n", login);
                     struct thread_data data;
-                    strcpy(data.login, login);
+                    data.login = login;
                     data.sock = sock;
                     pthread_create(&watcher, 0, message_watcher, &data);
                 }
                 break;
             case 'o':  // logout
                pthread_cancel(watcher);
+               pthread_join(watcher, 0);
                message_logout(login, sock);
                free(login);
                login = 0;
@@ -204,9 +208,11 @@ void *connection_handler(void *param)
     }
     if(login)
     {
-        message_do_logout(login);
-        free(login);
         pthread_cancel(watcher);
+        pthread_join(watcher, 0);
+        if(*login)
+            message_do_logout(login);
+        free(login);
     }
     free(buf);
     return 0;

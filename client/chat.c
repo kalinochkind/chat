@@ -120,8 +120,15 @@ void *watcher_thread(void *param)
             gtk_label_set_text(GTK_LABEL(statusLabel), body);
             continue;
         }
-        nowtm = localtime(&tv.tv_sec);
-        strftime(timebuf, 64, "[%d.%m.%Y %H:%M:%S]", nowtm);
+        if(tv.tv_sec)
+        {
+            nowtm = localtime(&tv.tv_sec);
+            strftime(timebuf, 64, "[%d.%m.%Y %H:%M:%S]", nowtm);
+        }
+        else
+        {
+            *timebuf = 0;
+        }
         add_list_entry(timebuf, author, body, k != 'h');
         free(author);
         free(body);
