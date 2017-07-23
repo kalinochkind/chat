@@ -170,9 +170,7 @@ void chat_new_message(char *kind, const char *login, const char *msg)
 
 long long chat_last_message()
 {
-    pthread_mutex_lock(&msg_mutex);
     long long t = last_msg_id;
-    pthread_mutex_unlock(&msg_mutex);
     return t;
 }
 
