@@ -146,7 +146,7 @@ void *connection_handler(void *param)
     free(param);
     char *buf = malloc(MESSAGE_BUF_SIZE);
     char *login = 0;
-    pthread_t watcher;
+    pthread_t watcher = 0;
     signal(SIGPIPE, SIG_IGN);
     while(1)
     {
@@ -171,8 +171,12 @@ void *connection_handler(void *param)
             case 'i':  // login
                 if(login)
                 {
-                    pthread_cancel(watcher);
-                    pthread_join(watcher, 0);
+                    if(watcher)
+                    {
+                        pthread_cancel(watcher);
+                        pthread_join(watcher, 0);
+                        watcher = 0;
+                    }
                     message_do_logout(login);
                     free(login);
                 }
@@ -187,12 +191,16 @@ void *connection_handler(void *param)
                 }
                 break;
             case 'o':  // logout
-               pthread_cancel(watcher);
-               pthread_join(watcher, 0);
-               message_logout(login, sock);
-               free(login);
-               login = 0;
-               break;
+                if(watcher)
+                {
+                    pthread_cancel(watcher);
+                    pthread_join(watcher, 0);
+                    watcher = 0;
+                }
+                message_logout(login, sock);
+                free(login);
+                login = 0;
+                break;
             case 'r':
                 message_receive(login, msg, sock);
                 break;
@@ -212,8 +220,12 @@ void *connection_handler(void *param)
     }
     if(login)
     {
-        pthread_cancel(watcher);
-        pthread_join(watcher, 0);
+        if(watcher)
+        {
+            pthread_cancel(watcher);
+            pthread_join(watcher, 0);
+            watcher = 0;
+        }
         if(*login)
             message_do_logout(login);
         free(login);
