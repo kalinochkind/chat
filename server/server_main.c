@@ -27,9 +27,10 @@ void parse_opts(int argc, char **argv, int *port, char **root_password)
         {"port", required_argument, NULL, 'p'},
         {"root-password", required_argument, NULL, 'r'},
         {"help", no_argument, NULL, 'h'},
+        {"clean", no_argument, NULL, 'c'},
         {0, 0, 0,                               0}
     };
-    char opts_string[] = "p:r:h";
+    char opts_string[] = "p:r:hc";
     int option_index = 0;
     while (1) {
         int res = getopt_long(argc, argv, opts_string, opts_list, &option_index);
@@ -51,6 +52,9 @@ void parse_opts(int argc, char **argv, int *port, char **root_password)
             case 'h':
                 puts(HELP_STR);
                 exit(0);
+            case 'c':
+                chat_clean();
+                break;
             default:
                 puts("");
                 puts(HELP_STR);

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <unistd.h>
 #include <sqlite3.h>
 #include <pthread.h>
 #include "chat.h"
@@ -293,4 +294,9 @@ int chat_kick_user(long long uid, const char *reason)
     sqlite3_finalize(stmt);
     chat_new_message("m", "", buf);
     return 1;
+}
+
+void chat_clean()
+{
+    unlink("chat.sqlite");
 }
